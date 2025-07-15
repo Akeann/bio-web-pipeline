@@ -1,0 +1,49 @@
+<nav class="navigation">
+    <div class="navigation__brand">
+        <div class="navigation__logo">
+            <img src="{{ url_for('static', path='/assets/logo.png') }}" alt="Logo">
+        </div>
+        <h1 class="navigation__title">
+            <a href="{{ url_for('index') }}">Metabarcoding Data Analysis</a>
+        </h1>
+    </div>
+    <div class="navigation__links">
+        <!-- Web Server dropdown -->
+        <div class="dropdown">
+            <a href="#" class="dropdown__toggle {% if active_tab == 'web_server' %}active{% endif %}">web server</a>
+            <div class="dropdown__menu">
+                <a class="dropdown__item {% if active_tab == 'illumina' %}active{% endif %}" 
+                   href="{{ url_for('illumina_page') }}">Illumina</a>
+                <a class="dropdown__item {% if active_tab == 'nanopore' %}active{% endif %}" 
+                   href="{{ url_for('nanopore_page') }}">Nanopore</a>
+            </div>
+        </div>
+        
+        <!-- Contacts link styled as dropdown toggle -->
+        <div class="dropdown">
+            <a href="#" class="dropdown__toggle {% if active_tab == 'contacts' %}active{% endif %}">contacts</a>
+        </div>
+
+        <!-- Profile dropdown -->
+        <div class="dropdown">
+            <a href="#" class="dropdown__toggle {% if active_tab == 'profile' %}active{% endif %}">
+                {% if user_authenticated %}
+                    <i class="user-icon"></i> {{ username }}
+                {% else %}
+                    profile
+                {% endif %}
+            </a>
+            <div class="dropdown__menu">
+                {% if user_authenticated %}
+                    <div class="dropdown__header">Signed in as <strong>{{ username }}</strong></div>
+                    <a href="/profile" class="dropdown__item">My Profile</a>
+                    <div class="dropdown__divider"></div>
+                    <a href="/logout" class="dropdown__item">Logout</a>
+                {% else %}
+                    <a href="/login" class="dropdown__item">Login</a>
+                    <a href="{{ url_for('research_page') }}" class="dropdown__item">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>

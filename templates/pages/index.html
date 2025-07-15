@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Metabarcoding Data Analysis{% endblock %}
+
+{% block content %}
+    <section class="welcome-section">
+        <h1 class="heading heading--primary">Welcome to Metabarcoding Data Analysis</h1>
+        <p class="text-lead">
+            This platform provides a free and user-friendly web server for QIIME2-based metabarcoding analysis using Illumina and Nanopore sequencing technologies. Whether you're a researcher, student, or educator, our tools are designed to help you analyze and classify your sequencing data efficiently.
+        </p>
+        <div class="flex flex--row flex--align-center flex--gap-sm">
+            <p class="text--md">
+                <span>Click to </span>
+                <span class="text--primary text--bold">start</span>
+                <span> using our web server for</span>
+            </p>
+
+            <div class="button-group">
+                <a href="{{ url_for('illumina_page') }}" class="button button--primary">Illumina</a>
+                <p class="text--md">or</p>
+                <a href="{{ url_for('nanopore_page') }}" class="button button--primary">Nanopore</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="introductory-section">
+        <h2 class="heading heading--secondary">Getting Started</h2>
+        <div class="content-box">
+            <div class="content-container">
+                <ul class="list--unstyled">
+                    <li class="mb--sm">
+                        <span>Try the </span>
+                        <a href="https://comingsoon" class="link">introduction tutorial</a>
+                        <span> to learn how to use our platform.</span>
+                    </li>
+                    <li class="mb--sm">
+                        <span>Explore the </span>
+                        <a href="#" class="link">documentation</a>
+                        <span> for detailed guides and explanations.</span>
+                    </li>
+                    <li class="mb--sm">
+                        <span>Visit our </span>
+                        <a href="https://github.com" class="link">GitHub</a>
+                        <span> repository to access the source code and contribute.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+{% endblock %}

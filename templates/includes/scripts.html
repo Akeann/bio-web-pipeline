@@ -1,0 +1,18 @@
+<script>
+// Dropdown меню
+document.querySelectorAll('.dropdown__toggle').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.target.nextElementSibling.classList.toggle('dropdown__menu--show');
+    });
+});
+
+// Закрытие при клике вне меню
+window.addEventListener('click', (e) => {
+    if (!e.target.matches('.dropdown__toggle')) {
+        document.querySelectorAll('.dropdown__menu').forEach(menu => {
+            menu.classList.remove('dropdown__menu--show');
+        });
+    }
+});
+</script>
