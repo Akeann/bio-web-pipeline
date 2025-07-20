@@ -46,16 +46,3 @@ async def nanopore_page(request: Request, current_user=Depends(get_current_user)
             "username": current_user["username"] if current_user else None
         }
     )
-
-@router.get("/research")
-async def research_page(request: Request, current_user=Depends(get_current_user)):
-    return templates.TemplateResponse(
-        "pages/research.html",
-        {
-            "request": request,
-            "page_title": "Research Registration",
-            "active_tab": "research",
-            "user_authenticated": current_user is not None,
-            "username": current_user["username"] if current_user else None
-        }
-    )

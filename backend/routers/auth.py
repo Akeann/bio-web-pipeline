@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 from ..dependencies import get_current_user
+from ..models.user import UserCreate, UserInDB
+from ..services.auth import register_user
 
 router = APIRouter()
 BASE_DIR = Path(__file__).parent.parent.parent
@@ -23,28 +25,26 @@ async def login_page(request: Request):
         }
     )
 
+# мне нужно будет везде поменять research на registration
+# @router.get("/research")
 @router.get("/register")
-async def register_page(request: Request):
+async def research_page(request: Request, current_user=Depends(get_current_user)):
     return templates.TemplateResponse(
-        "auth/register.html",
+        "pages/research.html",
         {
             "request": request,
-            "page_title": "Register",
-            "active_tab": None
+            "page_title": "Research Registration",
+            "active_tab": "research",
+            "user_authenticated": current_user is not None,
+            "username": current_user["username"] if current_user else None
         }
     )
 
-@router.get("/profile")
-async def profile_page(request: Request, current_user=Depends(get_current_user)):
-    if not current_user:
-        return RedirectResponse(url="/login")
-    
-    return templates.TemplateResponse(
-        "auth/profile.html",
-        {
-            "request": request,
-            "page_title": "My Profile",
-            "active_tab": "profile",
-            "user": current_user
-        }
-    )
+@router.post("/api/auth/register", response_model=UserInDB)
+async def register(user_data: UserCreate):
+    try:
+        return register_user(user_data)
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
