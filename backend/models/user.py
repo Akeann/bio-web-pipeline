@@ -1,14 +1,25 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel
 from typing import Optional
 
 class UserBase(BaseModel):
-    username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr
-    
+    username: str
+    email: str
+
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=8)
-    full_name: Optional[str] = Field(None, max_length=100)
+    password: str
+    full_name: Optional[str] = None
 
 class UserInDB(UserBase):
-    full_name: Optional[str]
-    hashed_password: str  # Никогда не храним пароли в чистом виде!
+    full_name: Optional[str] = None
+    # hashed_password: str
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
