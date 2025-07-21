@@ -1,9 +1,4 @@
-async def get_current_user():
-    return None  # По умолчанию пользователь не авторизован
+from .services.auth import get_current_user
 
-    # Альтернативный вариант с тестовым пользователем:
-    # return {
-    #     "username": "testuser",
-    #     "full_name": "Test User",
-    #     "email": "testuser@example.com"
-    # }
+# Для совместимости со старым кодом
+__all__ = ['get_current_user']

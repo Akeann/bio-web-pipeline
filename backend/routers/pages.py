@@ -8,18 +8,22 @@ router = APIRouter()
 BASE_DIR = Path(__file__).parent.parent.parent
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
-@router.get("/")
-async def index(request: Request, current_user=Depends(get_current_user)):
-    return templates.TemplateResponse(
-        "pages/index.html",
-        {
-            "request": request,
-            "page_title": "Metabarcoding Data Analysis",
-            "active_tab": "home",
-            "user_authenticated": current_user is not None,
-            "username": current_user["username"] if current_user else None
-        }
-    )
+# @router.get("/")
+# async def index(request: Request, current_user=Depends(get_current_user)):
+#     return templates.TemplateResponse(
+#         "pages/index.html",
+#         {
+#             "request": request,
+#             "page_title": "Metabarcoding Data Analysis",
+#             "active_tab": "home",
+#             "user_authenticated": current_user is not None,
+#             "username": current_user.username if current_user else None
+#         }
+#     )
+
+@router.get("/", name="index")
+async def home(request: Request):
+    return templates.TemplateResponse("pages/index.html", {"request": request})
 
 @router.get("/illumina")
 async def illumina_page(request: Request, current_user=Depends(get_current_user)):
