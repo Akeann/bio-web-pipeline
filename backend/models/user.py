@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime, timezone
+from pydantic import Field
 
 class UserBase(BaseModel):
     username: str
@@ -8,10 +10,20 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
     full_name: Optional[str] = None
+    country: Optional[str] = None
+    role: Optional[str] = None
+    institution_type: Optional[str] = None
 
 class UserInDB(UserBase):
     full_name: Optional[str] = None
-    # hashed_password: str
+    country: Optional[str] = None
+    role: Optional[str] = None
+    institution_type: Optional[str] = None
+    disabled: Optional[bool] = False
+    registration_date: Optional[str] = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
+        description="UTC timestamp of registration"
+    )
 
 class UserLogin(BaseModel):
     username: str

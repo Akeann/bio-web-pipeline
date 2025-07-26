@@ -24,26 +24,31 @@
             <a href="#" class="dropdown__toggle {% if active_tab == 'contacts' %}active{% endif %}">contacts</a>
         </div>
 
-        <!-- Profile dropdown -->
+        <!-- Auth section -->
+        {% if user_authenticated %}
+        <!-- Dropdown for authenticated users -->
         <div class="dropdown">
             <a href="#" class="dropdown__toggle {% if active_tab == 'profile' %}active{% endif %}">
-                {% if user_authenticated %}
-                    <i class="user-icon"></i> {{ username }}
-                {% else %}
-                    profile
-                {% endif %}
+                <i class="user-icon"></i> {{ username }}
             </a>
             <div class="dropdown__menu">
-                {% if user_authenticated %}
-                    <div class="dropdown__header">Signed in as <strong>{{ username }}</strong></div>
-                    <a href="/profile" class="dropdown__item">My Profile</a>
-                    <div class="dropdown__divider"></div>
-                    <a href="/logout" class="dropdown__item">Logout</a>
-                {% else %}
-                    <a href="/login" class="dropdown__item">Login</a>
-                    <a href="{{ url_for('research_page') }}" class="dropdown__item">Register</a>
-                {% endif %}
+                <div class="dropdown__header">Signed in as <strong>{{ username }}</strong></div>
+                <a href="/private/me" class="dropdown__item">My Profile</a>
+                <div class="dropdown__divider"></div>
+                <a href="/logout" class="dropdown__item" id="logout-link">Logout</a>
             </div>
         </div>
+        {% else %}
+        <!-- Dropdown for guests -->
+        <div class="dropdown">
+            <a href="#" class="dropdown__toggle">
+                profile
+            </a>
+            <div class="dropdown__menu">
+                <a href="/auth/login" class="dropdown__item">Login</a>
+                <a href="/auth/register" class="dropdown__item">Register</a>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </nav>
