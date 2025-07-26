@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Research Registration{% endblock %}
+
+{% block content %}
+<div class="research-form">
+    <div class="research-form__container">
+        <div class="content-container mb--md">
+            <p>
+                Our web server is provided FREE for use in research and education.<br><br>
+                To run the pipeline, please fill in the information requested below.
+            </p>
+        </div>
+
+        <form class="form" method="post" action="/api/auth/register">
+            <!-- Основные поля из UserCreate -->
+            <div class="form__group">
+                <label class="form__label" for="username">Username:</label>
+                <input type="text" id="username" name="username" class="form__control" required>
+                <p class="text--sm">This will be your login name</p>
+            </div>
+
+            <div class="form__group">
+                <label class="form__label" for="email">Email:</label>
+                <input type="email" id="email" name="email" class="form__control" required>
+                <p class="email-hint">Results will be sent to this email</p>
+            </div>
+
+            <div class="form__group">
+                <label class="form__label" for="password">Password:</label>
+                <input type="password" id="password" name="password" class="form__control" required>
+            </div>
+
+            <div class="form__group">
+                <label class="form__label" for="full_name">Full Name (optional):</label>
+                <input type="text" id="full_name" name="full_name" class="form__control">
+            </div>
+
+            <!-- Дополнительные исследовательские поля -->
+            <div class="form__group">
+                <label class="form__label" for="country">Country:</label>
+                <select id="country" name="country" class="form__control">
+                    <option value="usa">United States</option>
+                    <option value="uk">United Kingdom</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="flex flex--row gap--md mb--md">
+                <div class="form__group">
+                    <label class="form__label" for="role">I am a:</label>
+                    <select id="role" name="role" class="form__control">
+                        <option value="student">Student</option>
+                        <option value="researcher">Researcher</option>
+                    </select>
+                </div>
+                <div class="form__group">
+                    <label class="form__label" for="institution_type">Institution type:</label>
+                    <select id="institution_type" name="institution_type" class="form__control">
+                        <option value="university">University</option>
+                        <option value="company">Company</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="text--center">
+                <button type="submit" class="button button--primary">Register</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

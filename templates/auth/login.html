@@ -1,17 +1,39 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login</title>
-</head>
-<body>
-    <h1>Login</h1>
-    {% if error %}
-        <p style="color: red;">{{ error }}</p>
-    {% endif %}
-    <form method="post" action="/api/auth/login">
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <button type="submit">Login</button>
-    </form>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="research-form">
+    <div class="research-form__container">
+        <h1 class="page__title">Login</h1>
+        
+        {% if error %}
+        <div class="alert alert--error mb--md">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form class="form" method="post" action="/api/auth/login">
+            <div class="form__group">
+                <label class="form__label" for="username">Username:</label>
+                <input type="text" id="username" name="username" class="form__control" required>
+            </div>
+
+            <div class="form__group">
+                <label class="form__label" for="password">Password:</label>
+                <input type="password" id="password" name="password" class="form__control" required>
+            </div>
+
+            <div class="text--center">
+                <button type="submit" class="button button--primary">Login</button>
+            </div>
+        </form>
+
+        <div class="text--center mt--md">
+            <p class="text--sm">
+                Don't have an account? <a href="/auth/register" class="link">Register here</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -3,18 +3,40 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.security import OAuth2PasswordRequestForm
 from pathlib import Path
-from ..dependencies import get_current_user
 from ..models.user import UserCreate, UserInDB
-from ..services.auth import register_user, authenticate_user
+from ..services.auth import (
+    register_user, 
+    authenticate_user,
+    oauth2_scheme,
+    add_to_blacklist
+)
 from ..services.jwt import create_access_token
+from fastapi import status
 
 router = APIRouter()
 BASE_DIR = Path(__file__).parent.parent.parent
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 @router.get("/logout")
-async def logout():
-    return RedirectResponse(url="/")
+async def logout(
+    request: Request, 
+    token: str = Depends(oauth2_scheme)
+):
+    response = RedirectResponse(url="/")
+    
+    # Получаем токен из куки, если не передан в заголовке
+    if token is None:
+        token = request.cookies.get("access_token")
+        if token:
+            token = token.strip('"').strip("'")
+    
+    if token:
+        if token.startswith("Bearer "):
+            token = token[7:]
+        add_to_blacklist(token)
+    
+    response.delete_cookie("access_token")
+    return response
 
 @router.get("/login")
 async def login_page(request: Request):
@@ -23,26 +45,22 @@ async def login_page(request: Request):
         {
             "request": request,
             "page_title": "Login",
-            "active_tab": None
+            "active_tab": "login"
         }
     )
 
-# мне нужно будет везде поменять research на registration
-# @router.get("/research")
 @router.get("/register")
-async def research_page(request: Request, current_user=Depends(get_current_user)):
+async def register_page(request: Request):
     return templates.TemplateResponse(
-        "pages/research.html",
+        "auth/register.html",
         {
             "request": request,
-            "page_title": "Research Registration",
-            "active_tab": "research",
-            "user_authenticated": current_user is not None,
-            "username": current_user["username"] if current_user else None
+            "page_title": "Register",
+            "active_tab": "register"
         }
     )
 
-@router.post("/api/auth/register", response_model=UserInDB)
+@router.post("/register", response_model=UserInDB)
 async def register(user_data: UserCreate):
     try:
         return register_user(user_data)
@@ -51,12 +69,18 @@ async def register(user_data: UserCreate):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/api/auth/login")
+@router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form_data.username, form_data.password)
     access_token = create_access_token(data={"sub": user.username})
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "username": user.username
-    }
+    
+    response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    response.set_cookie(
+        key="access_token",
+        value=f"Bearer {access_token}",
+        httponly=True,
+        max_age=1800,
+        secure=False,
+        samesite="lax"
+    )
+    return response
