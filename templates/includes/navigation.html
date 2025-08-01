@@ -13,9 +13,9 @@
             <a href="#" class="dropdown__toggle {% if active_tab == 'web_server' %}active{% endif %}">web server</a>
             <div class="dropdown__menu">
                 <a class="dropdown__item {% if active_tab == 'illumina' %}active{% endif %}" 
-                   href="{{ url_for('illumina_page') }}">Illumina</a>
+                   href="/analysis/illumina">Illumina</a>
                 <a class="dropdown__item {% if active_tab == 'nanopore' %}active{% endif %}" 
-                   href="{{ url_for('nanopore_page') }}">Nanopore</a>
+                   href="/analysis/nanopore">Nanopore</a>
             </div>
         </div>
         
@@ -35,7 +35,8 @@
                 <div class="dropdown__header">Signed in as <strong>{{ username }}</strong></div>
                 <a href="/private/me" class="dropdown__item">My Profile</a>
                 <div class="dropdown__divider"></div>
-                <a href="/logout" class="dropdown__item" id="logout-link">Logout</a>
+                <a href="/auth/logout" class="dropdown__item" id="logout-link">Logout</a>
+
             </div>
         </div>
         {% else %}

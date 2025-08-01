@@ -28,7 +28,14 @@ def get_base_context(
         "full_name": current_user.full_name if current_user else None
     }
 
-@router.get("/", name="index", response_class=HTMLResponse)
+@router.get(
+    "/",
+    name="index",
+    response_class=HTMLResponse,
+    tags=["Pages"],
+    summary="Главная страница",
+    description="Отображает главную страницу с информацией о сервисе и ссылками на формы анализа"
+)
 async def home(
     request: Request,
     current_user: Optional[UserInDB] = Depends(get_optional_user)
@@ -41,7 +48,13 @@ async def home(
     )
     return templates.TemplateResponse("pages/index.html", context)
 
-@router.get("/illumina", response_class=HTMLResponse)
+@router.get(
+    "/analysis/illumina",
+    response_class=HTMLResponse,
+    tags=["Pages"],
+    summary="Форма загрузки данных Illumina",
+    description="Отображает форму для загрузки и анализа данных Illumina"
+)
 async def illumina_page(
     request: Request,
     current_user: Optional[UserInDB] = Depends(get_current_user)
@@ -54,7 +67,13 @@ async def illumina_page(
     )
     return templates.TemplateResponse("pages/illumina.html", context)
 
-@router.get("/nanopore", response_class=HTMLResponse)
+@router.get(
+    "/analysis/nanopore",
+    response_class=HTMLResponse,
+    tags=["Pages"],
+    summary="Форма загрузки данных Nanopore",
+    description="Отображает форму для загрузки и анализа данных Nanopore"
+)
 async def nanopore_page(
     request: Request,
     current_user: Optional[UserInDB] = Depends(get_current_user)
