@@ -1,34 +1,28 @@
-# Файлы IDE и редакторов
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Python
+### Python ###
+# Файлы Python
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 *.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
+.python-version
+
+# Кэш и временные файлы
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
+*.manifest
+*.spec
 
-# Виртуальные окружения
+# Дистрибутивы и сборки
+build/
+dist/
+sdist/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+
+# Виртуальное окружение
 .venv/
 venv/
 env/
@@ -36,45 +30,73 @@ env/
 bin/
 include/
 lib/
+lib64/
 pip-selfcheck.json
+PyPI/
 
-# FastAPI/Flask
-instance/
-.webassets-cache
-
-# Логи и БД
+# Тестовые данные и логи
 *.log
 *.sqlite
 *.sqlite3
-
-# Статические файлы (если используете сборщики)
-static/css/*.map
-static/js/*.map
-
-# Системные файлы
-.DS_Store
-Thumbs.db
-*.orig
-*.bak
-
-# Конфиги с чувствительными данными
-.env
-*.env
-secrets.yml
-config_*.yml
-
-# Тестовые данные и временные файлы
 test_data/
 tmp/
 temp/
 *.tmp
 *.temp
 
-# Фронтенд
+### FastAPI/Flask ###
+# Файлы сервера и конфигурации
+instance/
+.webassets-cache
+
+### Frontend ###
+# Статические файлы (если используются сборщики)
+static/css/*.map
+static/js/*.map
+
+# Node.js (если используется)
 node_modules/
 package-lock.json
 yarn.lock
-dist/
-build/
-assets/css/*.map
-assets/js/*.map
+
+### Системные файлы ###
+.DS_Store
+Thumbs.db
+*.orig
+*.bak
+*.swp
+*.swo
+
+### Конфиги с чувствительными данными ###
+.env
+*.env
+secrets.yml
+config_*.yml
+credentials.json
+firebase-key.json
+
+### IDE ###
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# PyCharm
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+### Uploads ###
+# Загружаемые пользователями файлы
+uploads/
+!uploads/.gitkeep  # (если нужно сохранить пустую папку)
+
+### Базы данных ###
+*.db
+*.db-journal

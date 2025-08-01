@@ -1,5 +1,61 @@
 <script>
-// Dropdown меню
+// Общие функции
+async function submitAnalysisForm(formId, endpoint) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const fastqFile = form.querySelector('input[type="file"]').files[0];
+        if (!fastqFile) {
+            alert('Please select a FASTQ file');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('fastq_file', fastqFile);
+
+        // Собираем параметры из формы
+        const params = {};
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            if (input.type === 'radio' || input.type === 'checkbox') {
+                if (input.checked) params[input.name || input.id] = input.value;
+            } else if (input.type !== 'file') {
+                params[input.name || input.id] = input.value;
+            }
+        });
+
+        formData.append('params', JSON.stringify(params));
+
+        try {
+            const token = localStorage.getItem('access_token') || '';
+            const response = await fetch(`/api/analysis/${endpoint}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            
+            if (response.ok) {
+                alert(`Analysis started! Job ID: ${result.job_id}\nStatus: ${result.status}`);
+            } else {
+                alert(`Error: ${result.detail || 'Unknown error'}`);
+            }
+        } catch (error) {
+            alert('Error submitting form: ' + error.message);
+        }
+    });
+}
+
+// Инициализация форм
+document.addEventListener('DOMContentLoaded', () => {
+    submitAnalysisForm('illuminaForm', 'illumina');
+    submitAnalysisForm('nanoporeForm', 'nanopore');
+});
+
+// Dropdown меню 
 document.querySelectorAll('.dropdown__toggle').forEach(btn => {
     btn.addEventListener('click', (e) => {
         e.preventDefault();

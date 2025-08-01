@@ -3,23 +3,19 @@
 {% block title %}Illumina Sequencing Data Analysis{% endblock %}
 
 {% block content %}
-    <form class="form">
+    <form class="form" id="illuminaForm" enctype="multipart/form-data">
         <h1 class="page__title">Illumina Sequencing Data</h1>
         
-        <div class="text--sm line-height--16 mb--md">
-            <span class="text--xs block mb--sm">To analyze your data, please select the required parameters below. You can also select the default parameters. Please visit GitHub and the article for more information.</span>
-            <span class="text--xs block mb--sm">Data Privacy Statement: All your personal data are strictly confidential and will not be shared with any third parties. Your data will be automatically deleted after 180 days.</span>
-        </div>
+        {% include "includes/form_disclaimer.html" %}
 
         <div class="form__group">
             <label class="form__label">fastq file archive:</label>
             <div class="flex flex--row flex--align-center gap--sm">
-                <input type="file" class="form__control" accept=".fastq">
-                <button type="button" class="button button--secondary">Browse...</button>
-                <button type="button" class="button button--secondary">Show example...</button>
-                <button type="button" class="button button--secondary">?</button>
+                <input type="file" id="fastqFile" class="form__control" accept=".fastq,.gz" required>
+                <button type="button" class="button button--secondary" onclick="document.getElementById('fastqFile').click()">Browse...</button>
             </div>
         </div>
+
         <div class="form__group">
             <label class="form__label">Sequencing type:</label>
             <div class="sequencing-options">
@@ -28,7 +24,7 @@
                     single-end sequencing
                 </label>
                 <label class="sequencing-option">
-                    <input type="radio" name="sequencing_type" value="paired-end" checked>
+                    <input type="radio" name="sequencing_type" value="paired-end">
                     paired-end sequencing
                 </label>
             </div>
@@ -36,71 +32,13 @@
 
         <div class="form__group">
             <label class="form__label">Adapter:</label>
-            <div class="flex flex--row flex--align-center gap--sm">
-                <select class="form__control">
-                    <option value="default">Default Adapter</option>
-                    <option value="custom">Custom Adapter</option>
-                </select>
-                <button type="button" class="button button--secondary">add adapter</button>
-                <button type="button" class="button button--secondary">?</button>
-            </div>
-        </div>
-
-        <div class="form__group">
-            <label class="form__label">Classifier:</label>
-            <select class="form__control">
-                <option value="default">Default Classifier</option>
-                <option value="custom">Custom Classifier</option>
-            </select>
-            <p class="text--sm mb--md">
-                You can use your own classifier: <a href="#" class="link">Example</a>
-            </p>
-        </div>
-
-        <div class="form__group">
-            <label class="form__label">Reference sequences:</label>
-            <select class="form__control">
-                <option value="default">Default Sequence</option>
-                <option value="custom">Custom Sequence</option>
-            </select>
-            <p class="text--sm mb--md">
-                You can use your own reference sequence: <a href="#" class="link">Example</a>
-            </p>
-        </div>
-
-        <div class="form__group">
-            <label class="form__label">Reference database:</label>
-            <select class="form__control">
-                <option value="default">Default Database</option>
-                <option value="custom">Custom Database</option>
+            <select class="form__control" id="adapter">
+                <option value="default">Default Adapter</option>
+                <option value="custom">Custom Adapter</option>
             </select>
         </div>
 
-        <div class="form__group">
-            <label class="form__label">Optional parameters:</label>
-            <div class="flex flex--row flex--wrap gap--md mb--md">
-                <div class="form__group">
-                    <label class="form__label" for="minlen">minlen:</label>
-                    <input type="number" id="minlen" class="form__control" min="0">
-                </div>
-                <div class="form__group">
-                    <label class="form__label" for="maxns">maxns:</label>
-                    <input type="number" id="maxns" class="form__control" min="0">
-                </div>
-                <div class="form__group">
-                    <label class="form__label" for="maxee">maxee:</label>
-                    <input type="number" id="maxee" class="form__control" min="0">
-                </div>
-            </div>
-        </div>
-
-        <div class="form__group">
-            <p class="text--sm mb--sm">The results will be sent to your profile email.</p>
-            <div class="flex flex--row flex--align-center gap--sm">
-                <label class="form__label">Additional email:</label>
-                <input type="email" class="form__control">
-            </div>
-        </div>
+        {% include "includes/form_common.html" %}
 
         <div class="form__actions">
             <button type="submit" class="button button--primary">Submit</button>
