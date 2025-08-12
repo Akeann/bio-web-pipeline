@@ -3,7 +3,27 @@
 {% block title %}Nanopore Sequencing Data Analysis{% endblock %}
 
 {% block content %}
+    <!-- Модальное окно для незарегистрированных пользователей -->
+    {% if not user_authenticated %}
+    <div id="registrationModal" class="modal" style="display: block;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Registration Required</h3>
+            <p>You need to register or log in to submit data for analysis.</p>
+            <div class="modal-actions">
+                <a href="/auth/register" class="button button--primary">Register</a>
+                <a href="/auth/login" class="button button--secondary">Log In</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <form class="form" id="nanoporeForm" enctype="multipart/form-data">
+
+        {% if user_authenticated %}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        {% endif %}
+
         <h1 class="page__title">Nanopore Sequencing Data</h1>
         
         {% include "includes/form_disclaimer.html" %}
@@ -33,7 +53,12 @@
         {% include "includes/form_common.html" %}
 
         <div class="form__actions">
-            <button type="submit" class="button button--primary">Submit</button>
+            {% if user_authenticated %}
+                <button type="submit" class="button button--primary">Submit</button>
+            {% else %}
+                <button type="button" class="button button--disabled" disabled>Submit</button>
+                <span class="registration-hint">Registration required to submit form</span>
+            {% endif %}
         </div>
     </form>
 {% endblock %}

@@ -12,8 +12,8 @@
             </p>
         </div>
 
-        <form class="form" method="post" action="/api/auth/register">
-            <!-- Основные поля из UserCreate -->
+        <form id="registerForm" class="form">
+            <!-- Основные поля -->
             <div class="form__group">
                 <label class="form__label" for="username">Username:</label>
                 <input type="text" id="username" name="username" class="form__control" required>
@@ -36,7 +36,7 @@
                 <input type="text" id="full_name" name="full_name" class="form__control">
             </div>
 
-            <!-- Дополнительные исследовательские поля -->
+            <!-- Дополнительные поля -->
             <div class="form__group">
                 <label class="form__label" for="country">Country:</label>
                 <select id="country" name="country" class="form__control">
@@ -64,9 +64,61 @@
             </div>
 
             <div class="text--center">
-                <button type="submit" class="button button--primary">Register</button>
+                <button type="submit" class="button button--primary" id="submitBtn">Register</button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const originalText = submitBtn.textContent;
+    
+    try {
+        // Блокируем кнопку и меняем текст
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing...';
+        
+        // Собираем данные формы
+        const formData = {
+            username: document.getElementById('username').value,
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+            full_name: document.getElementById('full_name').value || undefined,
+            country: document.getElementById('country').value || undefined,
+            role: document.getElementById('role').value || undefined,
+            institution_type: document.getElementById('institution_type').value || undefined
+        };
+
+        // Отправляем данные на сервер
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Registration failed. Please try again.');
+        }
+        
+        // Успешная регистрация - редирект на страницу входа
+        window.location.href = '/auth/login?from_registration=true&email=' + 
+                             encodeURIComponent(formData.email);
+        
+    } catch (err) {
+        console.error('Registration error:', err);
+        alert(err.message);
+    } finally {
+        // Восстанавливаем кнопку
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    }
+});
+</script>
 {% endblock %}

@@ -12,6 +12,7 @@ from ..services.auth import (
 )
 from ..services.jwt import create_access_token
 from fastapi import status
+from ..dependencies import get_current_user
 
 router = APIRouter()
 BASE_DIR = Path(__file__).parent.parent.parent
@@ -87,6 +88,20 @@ async def register(user_data: UserCreate):
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get(
+    "/api/auth/check",
+    tags=["Auth"],
+    summary="Проверка авторизации",
+    description="Проверяет, авторизован ли пользователь"
+)
+async def check_auth(current_user: UserInDB = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    return {"status": "authenticated"}
 
 @router.get(
     "/auth/logout",

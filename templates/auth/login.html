@@ -4,6 +4,12 @@
 
 {% block content %}
 <div class="research-form">
+    {% if request.query_params.get('from_registration') %}
+    <div class="alert alert--success mb--md">
+        Registration successful! Please log in with your credentials.
+    </div>
+    {% endif %}
+<div class="research-form">
     <div class="research-form__container">
         <h1 class="page__title">Login</h1>
         
