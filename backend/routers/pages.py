@@ -57,7 +57,7 @@ async def home(
 )
 async def illumina_page(
     request: Request,
-    current_user: Optional[UserInDB] = Depends(get_current_user)
+    current_user: Optional[UserInDB] = Depends(get_optional_user)
 ):
     context = get_base_context(
         request=request,
@@ -76,7 +76,7 @@ async def illumina_page(
 )
 async def nanopore_page(
     request: Request,
-    current_user: Optional[UserInDB] = Depends(get_current_user)
+    current_user: Optional[UserInDB] = Depends(get_optional_user)
 ):
     context = get_base_context(
         request=request,

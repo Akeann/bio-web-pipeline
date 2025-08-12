@@ -15,18 +15,18 @@ router = APIRouter(
     tags=["Analysis"],
 )
 
-# Конфигурация путей
+# Configuration paths
 UPLOADS_DIR = Path(__file__).parent.parent.parent / "uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)
 
 @router.post(
     "/illumina",
     response_model=AnalysisResponse,
-    summary="Запуск анализа Illumina",
-    description="Принимает FASTQ файл и параметры для анализа данных Illumina",
+    summary="Illumina Analysis",
+    description="Accepts FASTQ file and parameters for Illumina data analysis",
     responses={
         200: {
-            "description": "Анализ успешно запущен",
+            "description": "Analysis started successfully",
             "content": {
                 "application/json": {
                     "example": {
@@ -37,26 +37,34 @@ UPLOADS_DIR.mkdir(exist_ok=True)
                 }
             }
         },
-        401: {"description": "Не авторизован"},
-        500: {"description": "Ошибка при обработке файла"}
+        401: {"description": "Unauthorized"},
+        403: {"description": "Forbidden"},
+        500: {"description": "File processing error"}
     }
 )
 async def analyze_illumina(
-    fastq_file: Annotated[UploadFile, File(description="FASTQ файл для анализа")],
+    fastq_file: Annotated[UploadFile, File(description="FASTQ file for analysis")],
     params: IlluminaAnalysis,
     current_user: UserInDB = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    """
+    Process Illumina sequencing data with the following steps:
+    1. Validate user authentication
+    2. Save uploaded FASTQ file
+    3. Create analysis job record
+    4. Return job information
+    """
     try:
-        # Генерация ID задачи
+        # Generate job ID
         job_id = str(uuid.uuid4())
         file_path = UPLOADS_DIR / f"{job_id}_{fastq_file.filename}"
 
-        # Сохранение файла
+        # Save uploaded file
         with open(file_path, "wb") as buffer:
             buffer.write(await fastq_file.read())
 
-        # Создание записи в БД
+        # Create database record
         db_job = AnalysisJob(
             job_id=job_id,
             user_id=current_user.id,
@@ -86,11 +94,11 @@ async def analyze_illumina(
 @router.post(
     "/nanopore",
     response_model=AnalysisResponse,
-    summary="Запуск анализа Nanopore",
-    description="Принимает FASTQ файл и параметры для анализа данных Nanopore",
+    summary="Nanopore Analysis",
+    description="Accepts FASTQ file and parameters for Nanopore data analysis",
     responses={
         200: {
-            "description": "Анализ успешно запущен",
+            "description": "Analysis started successfully",
             "content": {
                 "application/json": {
                     "example": {
@@ -101,16 +109,24 @@ async def analyze_illumina(
                 }
             }
         },
-        401: {"description": "Не авторизован"},
-        500: {"description": "Ошибка при обработке файла"}
+        401: {"description": "Unauthorized"},
+        403: {"description": "Forbidden"},
+        500: {"description": "File processing error"}
     }
 )
 async def analyze_nanopore(
-    fastq_file: Annotated[UploadFile, File(description="FASTQ файл для анализа")],
+    fastq_file: Annotated[UploadFile, File(description="FASTQ file for analysis")],
     params: NanoporeAnalysis,
     current_user: UserInDB = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    """
+    Process Nanopore sequencing data with the following steps:
+    1. Validate user authentication
+    2. Save uploaded FASTQ file
+    3. Create analysis job record
+    4. Return job information
+    """
     try:
         job_id = str(uuid.uuid4())
         file_path = UPLOADS_DIR / f"{job_id}_{fastq_file.filename}"

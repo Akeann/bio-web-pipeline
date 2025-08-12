@@ -7,6 +7,14 @@ async function submitAnalysisForm(formId, endpoint) {
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        // Проверка авторизации
+        const isAuthenticated = await checkAuth();
+        if (!isAuthenticated) {
+            alert('You need to log in to submit the form');
+            window.location.href = '/auth/login';
+            return;
+        }
+
         const fastqFile = form.querySelector('input[type="file"]').files[0];
         if (!fastqFile) {
             alert('Please select a FASTQ file');
@@ -30,10 +38,10 @@ async function submitAnalysisForm(formId, endpoint) {
         formData.append('params', JSON.stringify(params));
 
         try {
-            const token = localStorage.getItem('access_token') || '';
             const response = await fetch(`/api/analysis/${endpoint}`, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'include'
             });
 
             const result = await response.json();
@@ -47,6 +55,20 @@ async function submitAnalysisForm(formId, endpoint) {
             alert('Error submitting form: ' + error.message);
         }
     });
+}
+
+// Функция проверки авторизации
+async function checkAuth() {
+    try {
+        const response = await fetch('/api/auth/check', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        return false;
+    }
 }
 
 // Инициализация форм
@@ -70,5 +92,37 @@ window.addEventListener('click', (e) => {
             menu.classList.remove('dropdown__menu--show');
         });
     }
+});
+
+// Управление модальным окном
+document.addEventListener('DOMContentLoaded', () => {
+    // Закрытие модального окна
+    document.querySelectorAll('.close-modal').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        });
+    });
+
+    // Открытие модального окна при попытке отправить форму незарегистрированным пользователем
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', (e) => {
+            const submitBtn = form.querySelector('[type="submit"]');
+            if (submitBtn && submitBtn.disabled) {
+                e.preventDefault();
+                const modal = document.getElementById('registrationModal');
+                if (modal) modal.style.display = 'block';
+            }
+        });
+    });
+
+    // Закрытие при клике вне модального окна
+    window.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal')) {
+            e.target.style.display = 'none';
+        }
+    });
 });
 </script>
