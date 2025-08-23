@@ -18,7 +18,7 @@
     </div>
     {% endif %}
 
-    <form class="form" id="illuminaForm" enctype="multipart/form-data">
+    <form class="form" id="illuminaForm" method="post" enctype="multipart/form-data" action="/api/analysis/illumina">
 
         {% if user_authenticated %}
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -31,7 +31,7 @@
         <div class="form__group">
             <label class="form__label">fastq file archive:</label>
             <div class="flex flex--row flex--align-center gap--sm">
-                <input type="file" id="fastqFile" class="form__control" accept=".fastq,.gz" required>
+                <input type="file" name="fastq_file" id="fastqFile" class="form__control" accept=".fastq,.gz" required>
                 <button type="button" class="button button--secondary" onclick="document.getElementById('fastqFile').click()">Browse...</button>
             </div>
         </div>
@@ -53,9 +53,75 @@
         <div class="form__group">
             <label class="form__label">Adapter:</label>
             <select class="form__control" id="adapter">
-                <option value="default">Default Adapter</option>
+                <option value="default">Default Adapter (TruSeq)</option>
                 <option value="custom">Custom Adapter</option>
             </select>
+            <p class="text--sm text--muted">Select adapter sequence for trimming. Default works for most Illumina libraries.</p>
+        </div>
+
+        <!-- Illumina-specific quality parameters -->
+        <div class="form__group">
+            <label class="form__label">Quality filtering:</label>
+            <div class="flex flex--row flex--wrap gap--md mb--md">
+                <div class="form__group">
+                    <label class="form__label" for="min_quality">min_quality (Phred):</label>
+                    <input type="number" name="min_quality" id="min_quality" class="form__control" min="0" max="40" value="20">
+                    <p class="text--sm text--muted">Minimum average quality score (20-30 recommended)</p>
+                </div>
+                <div class="form__group">
+                    <label class="form__label" for="max_ambiguous">max_ambiguous (N):</label>
+                    <input type="number" name="max_ambiguous" id="max_ambiguous" class="form__control" min="0" value="2">
+                    <p class="text--sm text--muted">Max ambiguous bases allowed (0-5)</p>
+                </div>
+                <div class="form__group">
+                    <label class="form__label" for="minlen">minlen (bp):</label>
+                    <input type="number" name="minlen" id="minlen" class="form__control" min="0" value="150">
+                    <p class="text--sm text--muted">Minimum read length after trimming</p>
+                </div>
+                <div class="form__group">
+                    <label class="form__label" for="maxns">maxns (N):</label>
+                    <input type="number" name="maxns" id="maxns" class="form__control" min="0" value="5">
+                    <p class="text--sm text--muted">Max N bases allowed post-filtering</p>
+                </div>
+                <div class="form__group">
+                    <label class="form__label" for="maxee">maxee:</label>
+                    <input type="number" name="maxee" id="maxee" class="form__control" min="0" step="0.1" value="2.0">
+                    <p class="text--sm text--muted">Max expected errors per read (1.0-3.0)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Classification parameters -->
+        <div class="form__group">
+            <label class="form__label">Classifier:</label>
+            <select name="classifier" class="form__control" id="classifier">
+                <option value="naive-bayes">Naive Bayes (sklearn)</option>
+                <option value="vsearch">VSEARCH</option>
+                <option value="blast">BLAST</option>
+                <option value="custom">Custom Classifier</option>
+            </select>
+            <p class="text--sm text--muted">Taxonomic classification method. Naive Bayes is QIIME2 default.</p>
+        </div>
+
+        <div class="form__group">
+            <label class="form__label">Reference sequences:</label>
+            <select name="ref_seq" class="form__control" id="ref_seq">
+                <option value="silva">SILVA (16S/18S)</option>
+                <option value="greengenes">Greengenes (16S)</option>
+                <option value="unite">UNITE (ITS)</option>
+                <option value="custom">Custom Sequence</option>
+            </select>
+            <p class="text--sm text--muted">Must match your marker gene (16S, ITS, etc.)</p>
+        </div>
+
+        <div class="form__group">
+            <label class="form__label">Reference database:</label>
+            <select name="ref_db" class="form__control" id="ref_db">
+                <option value="gtdb">GTDB</option>
+                <option value="ncbi">NCBI</option>
+                <option value="custom">Custom Database</option>
+            </select>
+            <p class="text--sm text--muted">Must match your reference sequences</p>
         </div>
 
         {% include "includes/form_common.html" %}

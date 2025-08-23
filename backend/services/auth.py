@@ -8,6 +8,9 @@ from ..services.jwt import decode_token
 from ..services.password import verify_password, get_password_hash
 from ..config import UsersDB, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
 from typing import Optional
+import re
+from pprint import pprint
+from uuid import uuid4
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login", auto_error=False)
 
@@ -46,6 +49,10 @@ def authenticate_user(username: str, password: str) -> UserInDB:
             detail="Invalid username or password",
             headers={"WWW-Authenticate": "Bearer"}
         )
+    
+    if not user.get("id"):
+        raise ValueError(f"User {username} has no ID")
+        
     return UserInDB(**user)
 
 def register_user(user_data: UserCreate) -> UserInDB:
@@ -58,6 +65,7 @@ def register_user(user_data: UserCreate) -> UserInDB:
     hashed_password = get_password_hash(user_data.password)
     
     user_dict = {
+        "id": str(uuid4()),  # Генерируем новый UUID
         "username": user_data.username,
         "email": user_data.email,
         "full_name": user_data.full_name,
@@ -76,40 +84,52 @@ async def get_current_user(
     request: Request,
     token: str = Depends(oauth2_scheme)
 ) -> Optional[UserInDB]:
-    credentials_exception = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Could not validate credentials",
-    headers={"WWW-Authenticate": "Bearer"},
-)
+    await clean_blacklist()  # Ваша оригинальная очистка чёрного списка
     
-    await clean_blacklist()
-    
+    # Оригинальная логика получения токена
     if token is None:
         token = request.cookies.get("access_token")
         if token is None:
+            print("DEBUG: No token found")
             return None
-        token = token.strip('"').strip("'")
-    
+
     try:
-        if token.startswith("Bearer "):
-            token = token[7:]
-        
-        if token in TOKEN_BLACKLIST:
-            return None
+        if isinstance(token, str):
+            # Улучшенная нормализация
+            token = token.replace('"', '').replace("'", "")
+            token = re.sub(r'^Bearer\s+', '', token).strip()
             
-        payload = decode_token(token)
-        username: str = payload.get("sub")
-        if username is None:
-            return None
-        token_data = TokenData(username=username)
-    except JWTError:
-        return None
+            print(f"DEBUG: Normalized token: {token[:10]}...")
+
+            # Ваша проверка чёрного списка
+            if token in TOKEN_BLACKLIST:
+                print("DEBUG: Token is blacklisted")
+                return None
+                
+            # Ваше оригинальное декодирование JWT
+            payload = decode_token(token)
+            username = payload.get("sub")
+            if not username:
+                print("DEBUG: No username in payload")
+                return None
+                
+            # Ваш поиск пользователя
+            user = fake_users_db.get(username)
+            if not user:
+                print(f"DEBUG: User {username} not found")
+                return None
+                
+            print(f"DEBUG: Authenticated user: {username}")
+            return UserInDB(**user)
+            
+    except JWTError as e:
+        # Ваша оригинальная обработка ошибок JWT
+        print(f"DEBUG: JWT Error: {str(e)}")
+    except Exception as e:
+        # Ваша обработка прочих ошибок
+        print(f"DEBUG: Unexpected error: {str(e)}")
     
-    user = fake_users_db.get(token_data.username)
-    if user is None:
-        return None
-        
-    return UserInDB(**user)
+    return None
 
 def get_fake_user() -> UserInDB:
     return UserInDB(

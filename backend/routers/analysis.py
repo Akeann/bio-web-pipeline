@@ -1,11 +1,12 @@
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Form, status
 from fastapi.responses import JSONResponse
 from pathlib import Path
 import uuid
-from typing import Annotated
+import json
+from typing import Annotated, Optional
 from sqlalchemy.orm import Session
-from ..models.analysis import IlluminaAnalysis, NanoporeAnalysis, AnalysisResponse
-from ..models.db_models import AnalysisJob, User
+from ..models.analysis import AnalysisResponse
+from ..models.db_models import AnalysisJob
 from ..dependencies import get_current_user
 from ..models.user import UserInDB
 from ..services.database import get_db
@@ -44,7 +45,18 @@ UPLOADS_DIR.mkdir(exist_ok=True)
 )
 async def analyze_illumina(
     fastq_file: Annotated[UploadFile, File(description="FASTQ file for analysis")],
-    params: IlluminaAnalysis,
+    sequencing_type: str = Form("single-end"),
+    adapter: str = Form("default"),
+    min_quality: int = Form(20),
+    max_ambiguous: int = Form(2),
+    minlen: int = Form(150),
+    maxns: int = Form(5),
+    maxee: float = Form(2.0),
+    classifier: str = Form("naive-bayes"),
+    ref_seq: str = Form("silva"),
+    ref_db: str = Form("gtdb"),
+    additional_email: Optional[str] = Form(None),
+    analysis_name: Optional[str] = Form(None),
     current_user: UserInDB = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -55,6 +67,7 @@ async def analyze_illumina(
     3. Create analysis job record
     4. Return job information
     """
+
     try:
         # Generate job ID
         job_id = str(uuid.uuid4())
@@ -62,15 +75,33 @@ async def analyze_illumina(
 
         # Save uploaded file
         with open(file_path, "wb") as buffer:
-            buffer.write(await fastq_file.read())
+            content = await fastq_file.read()
+            buffer.write(content)
+
+        # Prepare parameters as JSON
+        params = {
+            "sequencing_type": sequencing_type,
+            "adapter": adapter,
+            "min_quality": min_quality,
+            "max_ambiguous": max_ambiguous,
+            "minlen": minlen,
+            "maxns": maxns,
+            "maxee": maxee,
+            "classifier": classifier,
+            "reference_sequences": ref_seq,
+            "reference_db": ref_db,
+            "additional_email": additional_email,
+            "analysis_name": analysis_name
+        }
 
         # Create database record
         db_job = AnalysisJob(
             job_id=job_id,
-            user_id=current_user.id,
+            # user_id=current_user.id,
+            user_id=1,
             type="illumina",
             file_path=str(file_path),
-            parameters=params.model_dump_json(),
+            parameters=json.dumps(params),
             status="pending"
         )
         
@@ -87,7 +118,7 @@ async def analyze_illumina(
     except Exception as e:
         db.rollback()
         raise HTTPException(
-            status_code=500,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Analysis failed: {str(e)}"
         )
 
@@ -116,7 +147,18 @@ async def analyze_illumina(
 )
 async def analyze_nanopore(
     fastq_file: Annotated[UploadFile, File(description="FASTQ file for analysis")],
-    params: NanoporeAnalysis,
+    trim_first_bases: int = Form(80),
+    trim_after_base: int = Form(700),
+    min_quality: Optional[int] = Form(None),
+    max_ambiguous: Optional[int] = Form(None),
+    minlen: int = Form(150),
+    maxns: int = Form(5),
+    maxee: float = Form(2.0),
+    classifier: str = Form("naive-bayes"),
+    ref_seq: str = Form("silva"),
+    ref_db: str = Form("gtdb"),
+    additional_email: Optional[str] = Form(None),
+    analysis_name: Optional[str] = Form(None),
     current_user: UserInDB = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -127,19 +169,42 @@ async def analyze_nanopore(
     3. Create analysis job record
     4. Return job information
     """
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required"
+        )
+
     try:
         job_id = str(uuid.uuid4())
         file_path = UPLOADS_DIR / f"{job_id}_{fastq_file.filename}"
 
         with open(file_path, "wb") as buffer:
-            buffer.write(await fastq_file.read())
+            content = await fastq_file.read()
+            buffer.write(content)
+
+        # Prepare parameters as JSON
+        params = {
+            "trim_first_bases": trim_first_bases,
+            "trim_after_base": trim_after_base,
+            "min_quality": min_quality,
+            "max_ambiguous": max_ambiguous,
+            "minlen": minlen,
+            "maxns": maxns,
+            "maxee": maxee,
+            "classifier": classifier,
+            "reference_sequences": ref_seq,
+            "reference_db": ref_db,
+            "additional_email": additional_email,
+            "analysis_name": analysis_name
+        }
 
         db_job = AnalysisJob(
             job_id=job_id,
-            user_id=current_user.id,
+            user_id=1,
             type="nanopore",
             file_path=str(file_path),
-            parameters=params.model_dump_json(),
+            parameters=json.dumps(params),
             status="pending"
         )
         
@@ -156,6 +221,6 @@ async def analyze_nanopore(
     except Exception as e:
         db.rollback()
         raise HTTPException(
-            status_code=500,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Analysis failed: {str(e)}"
         )

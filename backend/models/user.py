@@ -1,7 +1,7 @@
-from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
-from pydantic import Field
+from pydantic import BaseModel, Field
+from uuid import UUID
 
 class UserBase(BaseModel):
     username: str
@@ -15,6 +15,7 @@ class UserCreate(UserBase):
     institution_type: Optional[str] = None
 
 class UserInDB(UserBase):
+    id: UUID
     full_name: Optional[str] = None
     country: Optional[str] = None
     role: Optional[str] = None
