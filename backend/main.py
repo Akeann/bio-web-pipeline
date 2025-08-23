@@ -4,6 +4,7 @@ from pathlib import Path
 from .routers import pages, auth, protected, analysis
 from .services.database import init_db, engine
 from .services.task_manager import cleanup_processes
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Metabarcoding Web",
@@ -40,6 +41,14 @@ async def shutdown_event():
 @app.get("/ping", tags=["Health"], summary="Health check")
 async def ping():
     return {"status": "ok"}
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # В продакшене нужно настроить правильно
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Для запуска с автоматическим подбором порта (опционально)
 if __name__ == "__main__":

@@ -7,41 +7,22 @@ async function submitAnalysisForm(formId, endpoint) {
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        // Проверка авторизации
-        const isAuthenticated = await checkAuth();
-        if (!isAuthenticated) {
-            alert('You need to log in to submit the form');
-            window.location.href = '/auth/login';
-            return;
-        }
-
-        const fastqFile = form.querySelector('input[type="file"]').files[0];
-        if (!fastqFile) {
-            alert('Please select a FASTQ file');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('fastq_file', fastqFile);
-
-        // Собираем параметры из формы
-        const params = {};
-        const inputs = form.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => {
-            if (input.type === 'radio' || input.type === 'checkbox') {
-                if (input.checked) params[input.name || input.id] = input.value;
-            } else if (input.type !== 'file') {
-                params[input.name || input.id] = input.value;
-            }
-        });
-
-        formData.append('params', JSON.stringify(params));
-
+        const submitBtn = form.querySelector('[type="submit"]');
+        const originalText = submitBtn.textContent;
+        
         try {
-            const response = await fetch(`/api/analysis/${endpoint}`, {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+
+            const formData = new FormData(form);
+
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 body: formData,
-                credentials: 'include'
+                credentials: 'include', // This ensures cookies are sent
+                headers: {
+                    'Accept': 'application/json'
+                }
             });
 
             const result = await response.json();
@@ -49,13 +30,23 @@ async function submitAnalysisForm(formId, endpoint) {
             if (response.ok) {
                 alert(`Analysis started! Job ID: ${result.job_id}\nStatus: ${result.status}`);
             } else {
-                alert(`Error: ${result.detail || 'Unknown error'}`);
+                throw new Error(result.detail || 'Unknown error');
             }
         } catch (error) {
             alert('Error submitting form: ' + error.message);
+            console.error('Submission error:', error);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
         }
     });
 }
+
+// Initialize form handlers
+document.addEventListener('DOMContentLoaded', () => {
+    submitAnalysisForm('illuminaForm', '/api/analysis/illumina');
+    submitAnalysisForm('nanoporeForm', '/api/analysis/nanopore');
+});
 
 // Функция проверки авторизации
 async function checkAuth() {
@@ -70,12 +61,6 @@ async function checkAuth() {
         return false;
     }
 }
-
-// Инициализация форм
-document.addEventListener('DOMContentLoaded', () => {
-    submitAnalysisForm('illuminaForm', 'illumina');
-    submitAnalysisForm('nanoporeForm', 'nanopore');
-});
 
 // Dropdown меню 
 document.querySelectorAll('.dropdown__toggle').forEach(btn => {

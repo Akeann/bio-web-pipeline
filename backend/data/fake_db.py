@@ -1,8 +1,10 @@
 from ..services.password import get_password_hash
 from ..config import UsersDB
+from uuid import uuid4
 
 fake_users_db: UsersDB = {
     "testuser": {
+        "id": str(uuid4()),
         "username": "testuser",
         "full_name": "Test User",
         "email": "testuser@example.com",

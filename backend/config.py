@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import Dict, Any
 import os
+from uuid import UUID
 
 # Безопасность
 SECRET_KEY = "your-secret-key" # нужно будет заменить на случайную строку + HTTPS
