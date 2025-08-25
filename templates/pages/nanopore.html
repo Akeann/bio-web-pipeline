@@ -18,7 +18,7 @@
     </div>
     {% endif %}
 
-    <form class="form" id="nanoporeForm" enctype="multipart/form-data">
+    <form class="form" id="nanoporeForm" method="post" enctype="multipart/form-data" action="/api/analysis/nanopore">
 
         {% if user_authenticated %}
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -31,7 +31,7 @@
         <div class="form__group">
             <label class="form__label">fastq file archive:</label>
             <div class="flex flex--row flex--align-center gap--sm">
-                <input type="file" id="fastqFile" class="form__control" accept=".fastq,.gz" required>
+                <input type="file" name="fastq_file" id="fastqFile" class="form__control" accept=".fastq,.gz" required>
                 <button type="button" class="button button--secondary" onclick="document.getElementById('fastqFile').click()">Browse...</button>
             </div>
         </div>
@@ -42,21 +42,64 @@
             <div class="flex flex--row flex--wrap gap--md mb--md">
                 <div class="form__group">
                     <label class="form__label" for="trim_first_bases">trim_first_bases:</label>
-                    <input type="number" id="trim_first_bases" class="form__control" min="0" value="80">
+                    <input type="number" name="trim_first_bases" id="trim_first_bases" class="form__control" min="0" value="80">
                     <p class="text--sm text--muted">Bases to trim from start (50-200 typical)</p>
                 </div>
                 <div class="form__group">
                     <label class="form__label" for="trim_after_base">trim_after_base:</label>
-                    <input type="number" id="trim_after_base" class="form__control" min="0" value="700">
+                    <input type="number" name="trim_after_base" id="trim_after_base" class="form__control" min="0" value="700">
                     <p class="text--sm text--muted">Trim all bases beyond this position</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quality filtering parameters -->
+        <div class="form__group">
+            <label class="form__label">Quality filtering (optional):</label>
+            <div class="flex flex--row flex--wrap gap--md mb--md">
+                <div class="form__group">
+                    <label class="form__label" for="min_quality">min_quality (Phred):</label>
+                    <input type="number" name="min_quality" id="min_quality" class="form__control" min="0" max="40" value="">
+                    <p class="text--sm text--muted">Minimum average quality score (optional)</p>
+                </div>
+                <div class="form__group">
+                    <label class="form__label" for="max_ambiguous">max_ambiguous (N):</label>
+                    <input type="number" name="max_ambiguous" id="max_ambiguous" class="form__control" min="0" value="">
+                    <p class="text--sm text--muted">Max ambiguous bases allowed (optional)</p>
+                </div>
+                <div class="form__group">
+                    <label class="form__label" for="minlen">minlen (bp):</label>
+                    <input type="number" name="minlen" id="minlen" class="form__control" min="0" value="150">
+                    <p class="text--sm text--muted">Minimum read length after trimming</p>
+                </div>
+                <div class="form__group">
+                    <label class="form__label" for="maxns">maxns (N):</label>
+                    <input type="number" name="maxns" id="maxns" class="form__control" min="0" value="5">
+                    <p class="text--sm text--muted">Max N bases allowed post-filtering</p>
+                </div>
+                <div class="form__group">
+                    <label class="form__label" for="maxee">maxee:</label>
+                    <input type="number" name="maxee" id="maxee" class="form__control" min="0" step="0.1" value="2.0">
+                    <p class="text--sm text--muted">Max expected errors per read (1.0-3.0)</p>
                 </div>
             </div>
         </div>
 
         <!-- Classification parameters -->
         <div class="form__group">
+            <label class="form__label">Classifier:</label>
+            <select name="classifier" class="form__control" id="classifier">
+                <option value="naive-bayes">Naive Bayes (sklearn)</option>
+                <option value="vsearch">VSEARCH</option>
+                <option value="blast">BLAST</option>
+                <option value="custom">Custom Classifier</option>
+            </select>
+            <p class="text--sm text--muted">Taxonomic classification method</p>
+        </div>
+
+        <div class="form__group">
             <label class="form__label">Reference sequences:</label>
-            <select class="form__control" id="ref_seq">
+            <select name="ref_seq" class="form__control" id="ref_seq">
                 <option value="silva">SILVA (16S/18S)</option>
                 <option value="midori">MIDORI (COI)</option>
                 <option value="unite">UNITE (ITS)</option>
@@ -67,7 +110,7 @@
 
         <div class="form__group">
             <label class="form__label">Reference database:</label>
-            <select class="form__control" id="ref_db">
+            <select name="ref_db" class="form__control" id="ref_db">
                 <option value="gtdb">GTDB</option>
                 <option value="ncbi">NCBI</option>
                 <option value="custom">Custom Database</option>
