@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ./uploads:/app/uploads
+    environment:
+      - DATABASE_URL=postgresql://metabarcoding_user:your_secure_password_here@db:5432/metabarcoding_db
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: metabarcoding_user
+      POSTGRES_PASSWORD: your_secure_password_here
+      POSTGRES_DB: metabarcoding_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

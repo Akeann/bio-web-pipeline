@@ -15,7 +15,7 @@ class UserCreate(UserBase):
     institution_type: Optional[str] = None
 
 class UserInDB(UserBase):
-    id: UUID
+    id: int
     full_name: Optional[str] = None
     country: Optional[str] = None
     role: Optional[str] = None
