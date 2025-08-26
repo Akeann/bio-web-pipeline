@@ -68,6 +68,12 @@ async def analyze_illumina(
     4. Return job information
     """
 
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required"
+        )
+
     try:
         # Generate job ID
         job_id = str(uuid.uuid4())
@@ -91,14 +97,14 @@ async def analyze_illumina(
             "reference_sequences": ref_seq,
             "reference_db": ref_db,
             "additional_email": additional_email,
-            "analysis_name": analysis_name
+            "analysis_name": analysis_name,
+            "original_filename": fastq_file.filename
         }
 
-        # Create database record
+        # Create database record with REAL user ID
         db_job = AnalysisJob(
             job_id=job_id,
-            # user_id=current_user.id,
-            user_id=1,
+            user_id=current_user.id,  # Используем реальный ID пользователя
             type="illumina",
             file_path=str(file_path),
             parameters=json.dumps(params),
@@ -196,12 +202,14 @@ async def analyze_nanopore(
             "reference_sequences": ref_seq,
             "reference_db": ref_db,
             "additional_email": additional_email,
-            "analysis_name": analysis_name
+            "analysis_name": analysis_name,
+            "original_filename": fastq_file.filename
         }
 
+        # Используем реальный ID пользователя
         db_job = AnalysisJob(
             job_id=job_id,
-            user_id=1,
+            user_id=current_user.id,  # Используем реальный ID пользователя
             type="nanopore",
             file_path=str(file_path),
             parameters=json.dumps(params),
@@ -224,3 +232,74 @@ async def analyze_nanopore(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Analysis failed: {str(e)}"
         )
+
+# Дополнительные эндпоинты для работы с задачами анализа
+@router.get(
+    "/jobs",
+    summary="Get user's analysis jobs",
+    description="Returns list of analysis jobs for the current user"
+)
+async def get_user_jobs(
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required"
+        )
+    
+    jobs = db.query(AnalysisJob).filter(
+        AnalysisJob.user_id == current_user.id
+    ).order_by(AnalysisJob.created_at.desc()).all()
+    
+    return {
+        "jobs": [
+            {
+                "job_id": job.job_id,
+                "type": job.type,
+                "status": job.status,
+                "created_at": job.created_at.isoformat() if job.created_at else None,
+                "completed_at": job.completed_at.isoformat() if job.completed_at else None,
+                "analysis_name": json.loads(job.parameters).get('analysis_name') if job.parameters else None
+            }
+            for job in jobs
+        ]
+    }
+
+@router.get(
+    "/jobs/{job_id}",
+    summary="Get analysis job details",
+    description="Returns detailed information about specific analysis job"
+)
+async def get_job_details(
+    job_id: str,
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required"
+        )
+    
+    job = db.query(AnalysisJob).filter(
+        AnalysisJob.job_id == job_id,
+        AnalysisJob.user_id == current_user.id
+    ).first()
+    
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found"
+        )
+    
+    return {
+        "job_id": job.job_id,
+        "type": job.type,
+        "status": job.status,
+        "created_at": job.created_at.isoformat() if job.created_at else None,
+        "completed_at": job.completed_at.isoformat() if job.completed_at else None,
+        "parameters": json.loads(job.parameters) if job.parameters else {},
+        "result_path": job.result_path
+    }
